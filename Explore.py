@@ -19,9 +19,11 @@ def add_person(person_id):
     global nodes
     filmography = imdbapi.get_person_filmography(person_id)
     directed_movies = filmography['data']['director'] if 'director' in filmography['data'] else []
+    directed_movies = set([movie.getID() for movie in directed_movies])
     acted_movies = filmography['data']['actor'] if 'actor' in filmography['data'] else []
+    acted_movies = set([movie.getID() for movie in acted_movies])
     name = filmography['data']['name']
-    edges = set(directed_movies + acted_movies)
+    edges = directed_movies.union(acted_movies)
 
     if directed_movies and acted_movies:
         node_type = 'director/actor'
@@ -33,15 +35,12 @@ def add_person(person_id):
         node_type = 'error'
 
     newRow = pandas.DataFrame({'id': [person_id], 'type': [node_type], 'name': [name], 'edges': [edges]})
-    print newRow
     nodes = pandas.concat([nodes, newRow])
 
 
 add_movie(seed_movie)
-all_edges = [edge for edge_list in nodes['edges'] for edge in edge_list]
-pending_people = all_edges  # .difference(nodes['id'])
-for node_id in pending_people[0:10]:
+all_edges = set([edge for edge_list in nodes['edges'] for edge in edge_list])
+pending_people = all_edges.difference(nodes['id'])
+for node_id in pending_people:
     add_person(node_id)
-
-
-print nodes
+nodes.to_csv("nodes.csv")
