@@ -1,5 +1,8 @@
+import networkx as nx
 import pandas
 from imdb import IMDb
+from networkx_viewer import Viewer
+
 
 imdbapi = IMDb()
 seed_movie = '2404435'
@@ -39,8 +42,9 @@ def add_person(person_id):
 
 
 add_movie(seed_movie)
-all_edges = set([edge for edge_list in nodes['edges'] for edge in edge_list])
+all_edges = set([destination_node for edge_list in nodes['edges'] for destination_node in edge_list])
 pending_people = all_edges.difference(nodes['id'])
 for node_id in pending_people:
     add_person(node_id)
 nodes.to_csv("nodes.csv")
+print "fin."
