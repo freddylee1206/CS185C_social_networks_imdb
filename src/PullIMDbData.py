@@ -24,7 +24,7 @@ def add_person(person_id, final=False):
     acted_movies = filmography['data']['actor'] if 'actor' in filmography['data'] else []
     acted_movies = set(['m' + movie.getID() for movie in acted_movies])
     name = filmography['data']['name']
-    edges = directed_movies.union(acted_movies) if final else set()
+    edges = directed_movies.union(acted_movies) if not final else set()
 
     if directed_movies and acted_movies:
         node_type = 'director/actor'
