@@ -1,5 +1,5 @@
 import pandas
-import networkx as nx
+from networkx import Graph, shortest_path
 from networkx.algorithms.bipartite import projected_graph
 from networkx.algorithms.centrality import betweenness_centrality
 from networkx.algorithms.cluster import clustering
@@ -7,7 +7,7 @@ from networkx_viewer import Viewer
 
 WILL_RECALCULATE_GRAPH_PROPERTIES = True
 
-G = nx.Graph()
+G = Graph()
 G.nodes(data=True)
 nodes = pandas.read_csv('nodes.csv', index_col='id')
 nodes['edges'] = nodes['edges'].apply(lambda string: set(string[5:-2].split(', ')))
@@ -30,10 +30,16 @@ for node_id, (edges, name, node_type, clusteringCoefficient, betweennessCentrali
             G.add_edge(edge, node_id)
 
 pG = projected_graph(G, people)
-cc = clustering(pG)
-bc = betweenness_centrality(pG)
-nodes['clusteringCoefficient'] = pandas.Series(cc, index=nodes.index)
-nodes['betweennessCentrality'] = pandas.Series(bc, index=nodes.index)
+nodes['clusteringCoefficient'] = pandas.Series(clustering(pG), index=nodes.index)
+nodes['betweennessCentrality'] = pandas.Series(betweenness_centrality(pG), index=nodes.index)
+
+distances_to_furthest_nodes = dict()
+for source, targets_to_paths in shortest_path(pG).iteritems():
+    longest_shortest_path_length = 0
+    for target, path in targets_to_paths:
+        longest_shortest_path_length = max([longest_shortest_path_length, len(path)])
+        distances_to_furthest_nodes[source] = longest_shortest_path_length
+
 print "vertices: {}".format(pG.number_of_nodes())
 print "edges: {}".format(pG.number_of_edges())
 print nodes.nlargest(5, 'clusteringCoefficient')[['clusteringCoefficient']]
